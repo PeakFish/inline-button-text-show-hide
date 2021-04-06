@@ -143,8 +143,9 @@
       }
       // getClientRects 获取行数函数
       function getLength(domRectList) {
-        var line = 0, lastBottom = 0;
-        for (var i = 0; i < domRectList.length; ++i) {
+        let line = 0;
+        let lastBottom = 0;
+        for (let i = 0; i < domRectList.length; ++i) {
           if (domRectList[i].bottom === lastBottom) { // 这里如果多个块的 bottom 相同的话那么就是在同一行，跳过，不计算行数。
             continue;
           }
