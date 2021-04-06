@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui" />
+  <style>
+    .box {/*width: 300px;*/font-size: 16px;}
+    .wrap {display: inline;}
+    .wrap .h {display: inline-block;color: green;}
+    .wrap .a {display: inline-block;color: red;}
+    .wrap .show-more {color: #40a9ff;cursor: pointer;}
+    .wrap .hide-more {color: #40a9ff;cursor: pointer;}
+  </style>
+</head>
+
+<body>
+  <div class="box">
+    <span class="wrap">
+      <span class="h">#清明节#</span>
+      <span class="a">@鲁班 @梦奇</span>
+      <span class="c">永远不要跟3别人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时候他们熬不住了我可以多熬一秒钟二秒钟永远不要跟别人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时候他们熬不住了我可以多熬一秒钟二秒钟永远不要跟别人比幸运我从来没想过我比别人幸运我也许比他们更有毅力在最困难的时候他们熬不住了我可以多熬一秒钟二秒钟在最困难的时候他们熬不住了我可以多熬一秒钟二秒钟</span>
+      <span class="show-more">......展开</span>
+      <span class="hide-more">收起</span>
+    </span>
+  </div>
+
+  <script>
+    const container = document.querySelector('.wrap');
+    const textElement = document.querySelector('.wrap .c');
+    const showElement = document.querySelector('.wrap .show-more');
+    const hideElement = document.querySelector('.wrap .hide-more');
+    const maxLine = 3;
+    const showHandle = () => {};
+    const hideHandle = () => {};
+    inlineTextShowHide({ container, textElement, showElement, hideElement, maxLine, showHandle, hideHandle, hideElementFixRight: false });
+
+    function inlineTextShowHide(params) {
+      const { container, textElement, showElement, hideElement, maxLine, showHandle, hideHandle, hideElementFixRight } = params;
+      const fullText = textElement.innerText;
+      // 隐藏掉这两个按钮元素
+      showElement.style.display = 'none';
+      hideElement.style.display = 'none';
+
+      // console.log('fullText', fullText);
+      // console.log('showElement', showElement);
+      // console.log('hideElement', hideElement);
+      // console.log('textElement', textElement);
+
+      const rect = container.getClientRects();
+      let containerLine = getLength(rect);
+
+      console.log('rect', rect);
+      console.log('h', containerLine);
+
+      // 超过高度才进行操作
+      if (containerLine > maxLine) {
+
+        if (hideElementFixRight) {
+          /**
+           * 计算 收起的位置
+           * 让收起也在页面最右侧
+           */
+          hideElement.style.display = 'inline-block';
+          const hideElementWidth = hideElement.offsetWidth;//页面展开更多的大小
+          // const maxWidth = textElement.offsetWidth;
+          const maxWidth = textElement.getBoundingClientRect().width;
+
+          const lastLineWidth = rect[rect.length - 1].width;
+          const vacantWidth = maxWidth - lastLineWidth;
+          if (vacantWidth >= hideElementWidth) { // 在最后一行的右侧
+            hideElement.style.width = `${vacantWidth - 5}px`;
+          } else {// 单独占一行在右侧
+            hideElement.style.width = `${maxWidth}px`;
+          }
+          hideElement.style.textAlign = 'right';
+          hideElement.style.display = 'none';
+        }
+
+        /**
+         * 计算能放下展开的 文字是多少
+         *
+         */
+        let startIndex = 0;
+        let lastStartIndex = 0;
+        let endIndex = fullText.length;
+        let lastEndIndex = 0;
+        let step = 0;
+        let currentText = fullText;
+        let midIndex;
+
+        // 把该放开的元素放开
+        showElement.style.display = 'inline-block';
+
+
+        // while (containerLine > maxLine) {
+        //   // // 步长处理
+        //   // currentText = currentText.slice(0, -1);
+        //   // textElement.innerHTML = currentText;
+        //   // containerLine = getLength(container.getClientRects());
+        // }
+
+        const findIndex = dichotomyText(0, fullText.length);
+
+        console.log('findIndex', findIndex);
+
+
+        const briefText = textElement.innerText;
+        // 元素绑定事件
+        showElement.addEventListener('click', (e) => {
+          textElement.innerHTML = fullText;
+          showElement.style.display = 'none';
+          hideElement.style.display = 'inline-block';
+          showHandle && showHandle(e);
+        });
+
+        hideElement.addEventListener('click', (e) => {
+          textElement.innerHTML = briefText;
+          showElement.style.display = 'inline-block';
+          hideElement.style.display = 'none';
+          hideHandle && hideHandle(e);
+        });
+      }
+
+      // 二分处理文字函数
+      function dichotomyText (start, end) {
+        // debugger;
+        let middle = Math.floor((start + end) / 2);
+        textElement.innerHTML = fullText.slice(0, middle);
+        containerLine = getLength(container.getClientRects());
+        if (((end - start) === 1) && containerLine === maxLine) { // 二分达到最小步长 1 后 结束递归
+          return middle;
+        } else {
+          if (containerLine > maxLine) { // 第一次肯定是大于的 需要减小的 走的是这个
+            return dichotomyText(start, middle);
+          }
+          if (containerLine < maxLine) { // 二分以后可能小于了 需要加回去
+            return dichotomyText(middle, end);
+          }
+          if (containerLine === maxLine) { // 等于的情况 可能不是刚刚好 需要加回去
+            return dichotomyText(middle, end);
+          }
+        }
+      }
+      // getClientRects 获取行数函数
+      function getLength(domRectList) {
+        var line = 0, lastBottom = 0;
+        for (var i = 0; i < domRectList.length; ++i) {
+          if (domRectList[i].bottom === lastBottom) { // 这里如果多个块的 bottom 相同的话那么就是在同一行，跳过，不计算行数。
+            continue;
+          }
+          lastBottom = domRectList[i].bottom;
+          line++;
+        }
+        return line;
+      }
+    }
+  </script>
+
+
+</body>
+
+</html>
